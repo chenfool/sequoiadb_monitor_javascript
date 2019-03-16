@@ -1,0 +1,164 @@
+#!/bin/bash
+
+usage () {
+   echo "Usage: $(basename $0) [OPTIONS] 
+         --hosts         host addresses(hostname:svcname), separated by ',', 
+                         such as 'localhost:11810,localhost:11910', default: 
+                         'localhost:11810'
+         -u              username, default:''
+         -w              password, default:''
+         --cm-service    sdbcm's service, default:'11790'
+         -h, --help      print help info"
+   exit -1;
+}
+
+
+get_timestamp()
+{
+   local machineTimeStamp="" 
+   local tempTime=""
+   while read line 
+   do
+      if [ "${line}" == "" ] ; then
+         continue;
+      fi
+      echo ${line} | grep -v "<" | grep -v "#" > /dev/null
+      if [ "a0" != a"$?" ] ; then 
+         continue;
+      fi
+
+      local hostname=$(echo $line | awk -F ' ' '{print $1}')
+      local user=$(echo $line | awk -F ' ' '{print $2}')
+      local password=$(echo $line | awk -F ' ' '{print $3}')
+
+      tempTime=$($SDB -f ${filepath}/sdbSsh.js -e "var doWhat = 'getTimeStamp' ;
+                                        var hostname = '${hostname}' ;
+                                        var user = '${user}' ;
+                                        var passwd = '${password}' ;
+                                        var sshPort = 22 ; ")
+
+      if [ "a${machineTimeStamp}" == "a" ] ; then
+         machineTimeStamp=${hostname}@${tempTime}
+      else
+         machineTimeStamp="${machineTimeStamp}*${hostname}@${tempTime}"
+      fi
+
+   done < ${filepath}/conf/${machineInfo}
+	
+   echo ${machineTimeStamp}
+
+}
+
+main()
+{
+  localFileName=`basename $0`
+  filepath=$( cd "$(dirname $0)"; pwd; )
+
+  # get the sequoiadb install path
+  . /etc/default/sequoiadb
+  
+  SDB=${INSTALL_DIR}/bin/sdb
+
+  machineInfo=machineInfo
+
+  if [ ! -d ${filepath}/tmp ] ; then
+     mkdir -p ${filepath}/tmp;
+  fi
+
+  if [ ! -f ${filepath}/tmp/oldInfo.txt ] ; then
+     touch ${filepath}/tmp/oldInfo.txt;
+  fi  
+
+  cat ${filepath}/script/sdbsnapshot.js > ${filepath}/tmp/temp.js ; cat ${filepath}/conf/alarm.js >> ${filepath}/tmp/temp.js; cat ${filepath}/script/main.js >> ${filepath}/tmp/temp.js;
+
+  # test connect sequoiadb
+  outputInfo=$(${SDB} -f "${filepath}/tmp/temp.js" -e "var doWhat='test_connect_to_sdb'; var coordHosts='${hosts}'; var sdbuser = '${username}'; var sdbpassword = '${password}';")
+  if [ a"${outputInfo}" != a"" ] ; then
+     echo "${outputInfo}"
+     exit -1;
+  fi
+
+  # get sequoiadb's replicaGroup hostname
+  outputInfo=$(${SDB} -f "${filepath}/tmp/temp.js" -e "var doWhat='getReplicaGroup'; var coordHosts='${hosts}'; var sdbuser = '${username}'; var sdbpassword = '${password}';")
+  echo ${outputInfo} > ${filepath}/tmp/hosts.conf
+ 
+  newInfo="";
+  for line in $( ${SDB} -f "${filepath}/tmp/temp.js" -e "var doWhat=\"get_read_write_info\" ; var localHostName='$(hostname)'; var coordHosts='${hosts}'; var sdbuser = '${username}'; var sdbpassword = '${password}';" )
+  do
+     newInfo=${newInfo}"#"${line}
+  done 
+
+  oldInfo=$( cat ${filepath}/tmp/oldInfo.txt )
+  
+  if [ "" == "${oldInfo}" ] ; then
+     oldInfo=${newInfo};
+  fi
+  echo ${oldInfo} | grep "exception" > /dev/null
+  if [ "0" == "$?" ] ; then
+     oldInfo=${newInfo};
+  fi
+  
+  hosts_str=$(cat ${filepath}/tmp/hosts.conf);
+  machineTimeStamp=$(${SDB} -f "${filepath}/tmp/temp.js" -e "var doWhat='getRemoteTimeStamp'; var coordHosts='${hosts}'; var sdbuser = '${username}'; var sdbpassword = '${password}'; var hosts_str='${hosts_str}'; var cm_service=${cm_service}")
+  #echo ${machineTimeStamp}
+
+  ${SDB} -f "${filepath}/tmp/temp.js" \
+         -e "var doWhat='doMain'; var oldInfo='${oldInfo}'; var newInfo='${newInfo}'; var sdbcmlogInfo='${crashNode}'; var machineTimeStamp='${machineTimeStamp}'; var localHostName='$(hostname)'; var coordHosts='${hosts}'; var sdbuser = '${username}'; var sdbpassword = '${password}';"
+  
+  echo "${newInfo}" > ${filepath}/tmp/oldInfo.txt
+
+  ###########################
+}
+
+ARGS=$(getopt -o "hu:p:w:" -l "help,hosts:,user:,password:,cm-service:" -n "$(basename $0)" -- "$@")
+
+eval set -- "${ARGS}"
+while (($# > 1)) ; do
+   case ${1} in
+      -h|--help)
+         shift;
+         usage;
+         ;;
+      --hosts)
+         shift;
+         hosts=${1};
+         shift;
+         ;;
+      -u|--username)
+         shift;
+         username=${1};
+         shift;
+         ;;
+      -w|--password)
+         shift;
+         password=${1};
+         shift;
+         ;;
+      --cm-service)
+         shift;
+         cm_service=${1}
+         shift;
+         ;;
+      ?)
+         shift;
+         usage;
+         ;;
+      --)
+         shift;
+         break;
+         ;;
+   esac
+      
+done
+
+hosts=${hosts:-"localhost:11810"}
+username=${username:-""}
+password=${password:-""}
+cm_service=${cm_service:-"11790"}
+
+#echo "**${hosts}**"
+#echo "**${username}**"
+#echo "**${password}**"
+#echo "**${cm_service}**"
+
+main
