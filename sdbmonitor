@@ -3,7 +3,7 @@
 usage () {
    echo "Usage: $(basename $0) [OPTIONS] 
          --hosts         host addresses(hostname:svcname), separated by ',', 
-                         such as 'localhost:11810,localhost:11910', default: 
+                         such as 'sdb1:11810,sdb2:11810,sdb3:11810', default: 
                          'localhost:11810'
          -u              username, default:''
          -w              password, default:''
