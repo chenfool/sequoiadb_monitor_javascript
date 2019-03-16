@@ -507,12 +507,12 @@ function NodeInfo( hn, pt, user, pw )
       var alarmSize = masterRelateiveLsn * alarmLsnPercent;
       var seriousSize = masterRelateiveLsn * seriousLsnPercent;
 
-	   this.lsnGap = ( masterCurrentLsn - this.currentLSN );
+      this.lsnGap = ( masterCurrentLsn - this.currentLSN );
 
       // if lsnGap < 1M ; then ignore this lsn relative
       if ( this.lsnGap < (1024*1024) ){
          this.lsnGap = 0;
-		   return 0;
+         return 0;
       }
       if ( this.lsnGap > seriousSize ){
          this.alarmLevel = 2;
@@ -569,7 +569,7 @@ function GroupInfo( coordHostName, coordPort )
       pClass.add( "" 
                   + this.masterNode.hostname + ":" + this.masterNode.port + "|" 
                   + this.masterNode.type + "_LSN" + "|" 
-                  + Math.round( masterRelateiveLsn * alarmLsnPercent) + "|" 
+                  + Math.round(masterRelateiveLsn * alarmLsnPercent) + "|" 
                   + 0 + "|" 
                   + getTime() + "|" 
                   + "masterNode" + "|" 
@@ -733,15 +733,17 @@ function GroupInfo( coordHostName, coordPort )
             if ( node.alarmLevel != 0 && session.execName != "INSERT" ) {
                var coordSessionId = this.findCoordSessionId (session.relateId, coordGroup);
                var description = node.getContextDescription (session, session.execName);
-               pClass.add( "" 
-                        + node.hostname + ":" + node.port + "|"
-                        + "SESSIONTIMEOUT" + "|"
-                        + _maxAlarmRelativeTime + "|"
-                        + session.relativeTime + "|"
-                        + getTime() + "|"
-                        + coordSessionId + ":" + session.execName + "|"
-                        + node.alarmLevel + "|"
-                        + description );
+               if (coordSessionId != "null") {
+                  pClass.add( "" 
+                           + node.hostname + ":" + node.port + "|"
+                           + "SESSIONTIMEOUT" + "|"
+                           + _maxAlarmRelativeTime + "|"
+                           + session.relativeTime + "|"
+                           + getTime() + "|"
+                           + coordSessionId + ":" + session.execName + "|"
+                           + node.alarmLevel + "|"
+                           + description );
+               }
             }
          }
       }      

@@ -3,50 +3,13 @@
 usage () {
    echo "Usage: $(basename $0) [OPTIONS] 
          --hosts         host addresses(hostname:svcname), separated by ',', 
-                         such as 'sdb1:11810,sdb2:11810,sdb3:11810', default: 
-                         'localhost:11810'
+                         for example 'sdb1:11810,sdb2:11810,sdb3:11810',
+                         default:'localhost:11810'
          -u              username, default:''
          -w              password, default:''
          --cm-service    sdbcm's service, default:'11790'
          -h, --help      print help info"
    exit -1;
-}
-
-
-get_timestamp()
-{
-   local machineTimeStamp="" 
-   local tempTime=""
-   while read line 
-   do
-      if [ "${line}" == "" ] ; then
-         continue;
-      fi
-      echo ${line} | grep -v "<" | grep -v "#" > /dev/null
-      if [ "a0" != a"$?" ] ; then 
-         continue;
-      fi
-
-      local hostname=$(echo $line | awk -F ' ' '{print $1}')
-      local user=$(echo $line | awk -F ' ' '{print $2}')
-      local password=$(echo $line | awk -F ' ' '{print $3}')
-
-      tempTime=$($SDB -f ${filepath}/sdbSsh.js -e "var doWhat = 'getTimeStamp' ;
-                                        var hostname = '${hostname}' ;
-                                        var user = '${user}' ;
-                                        var passwd = '${password}' ;
-                                        var sshPort = 22 ; ")
-
-      if [ "a${machineTimeStamp}" == "a" ] ; then
-         machineTimeStamp=${hostname}@${tempTime}
-      else
-         machineTimeStamp="${machineTimeStamp}*${hostname}@${tempTime}"
-      fi
-
-   done < ${filepath}/conf/${machineInfo}
-	
-   echo ${machineTimeStamp}
-
 }
 
 main()
@@ -83,18 +46,18 @@ main()
   echo ${outputInfo} > ${filepath}/tmp/hosts.conf
  
   newInfo="";
-  for line in $( ${SDB} -f "${filepath}/tmp/temp.js" -e "var doWhat=\"get_read_write_info\" ; var localHostName='$(hostname)'; var coordHosts='${hosts}'; var sdbuser = '${username}'; var sdbpassword = '${password}';" )
+  for line in $(${SDB} -f "${filepath}/tmp/temp.js" -e "var doWhat=\"get_read_write_info\" ; var localHostName='$(hostname)'; var coordHosts='${hosts}'; var sdbuser = '${username}'; var sdbpassword = '${password}';")
   do
      newInfo=${newInfo}"#"${line}
   done 
 
   oldInfo=$( cat ${filepath}/tmp/oldInfo.txt )
   
-  if [ "" == "${oldInfo}" ] ; then
+  if [ a"" == a"${oldInfo}" ] ; then
      oldInfo=${newInfo};
   fi
   echo ${oldInfo} | grep "exception" > /dev/null
-  if [ "0" == "$?" ] ; then
+  if [ a"0" == a"$?" ] ; then
      oldInfo=${newInfo};
   fi
   
