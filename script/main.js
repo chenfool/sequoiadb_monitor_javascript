@@ -7,39 +7,99 @@ var CMD_SHELL = "";
 function createGroupInfoList( db )
 {
   var groupList = new Array();
+  var hostType = "";
 
-  // coord group
-  var cursor = db.list(SDB_LIST_GROUPS, {GroupName:"SYSCoord"});
-  while( cursor.next() ){
-    var bson = cursor.current().toObj();
-    //if ("SYSCoord" == bson["GroupName"])
-    //   continue ;
-    var groupInfo = new GroupInfo();
-    groupInfo.groupName = bson["GroupName"];
-
-    for( var i=0; i<bson["Group"].length; i++ ){
-      var nodeInfo = new NodeInfo( bson["Group"][i]["HostName"],
-                                   bson["Group"][i]["Service"][0]["Name"], sdbuser, sdbpassword );
-      groupInfo.addNode( nodeInfo );
-    }
-    groupList.push( groupInfo );
+  var cursor = "";
+  try {
+     cursor = db.snapshot(8);
+     hostType = "COORD";
+     cursor.close();
+  }
+  catch ( e ) {
+     if ( e == SDB_RTN_COORD_ONLY ) {
+        var cursor = db.snapshot(7);
+        var snapshot7_obj = cursor.next().toObj();
+        cursor.close();
+        if ( "SYSCatalogGroup" == snapshot7_obj["GroupName"] ){
+          hostType = "CATALOG";
+        }else{
+          hostType = "DATANODE";
+        }
+     }
+     else {
+        println ( "db.snapshot(8) error, error = " + e );
+     }
   }
 
-  // catalog group and data group
-  var cursor = db.list(SDB_LIST_GROUPS, {GroupName:{$ne:"SYSCoord"}});
-  while( cursor.next() ){
-    var bson = cursor.current().toObj();
-    //if ("SYSCoord" == bson["GroupName"])
-    //   continue ;
-    var groupInfo = new GroupInfo();
-    groupInfo.groupName = bson["GroupName"];
+  switch (hostType)
+  {
+    case "COORD" : 
+       // coord group
+       var cursor = db.list(SDB_LIST_GROUPS, {GroupName:"SYSCoord"}); 
+       while( cursor.next() ){
+         var bson = cursor.current().toObj();
+         //if ("SYSCoord" == bson["GroupName"])
+         //   continue ;
+         var groupInfo = new GroupInfo();
+         groupInfo.groupName = bson["GroupName"];
 
-    for( var i=0; i<bson["Group"].length; i++ ){
-      var nodeInfo = new NodeInfo( bson["Group"][i]["HostName"],
-                                   bson["Group"][i]["Service"][0]["Name"], sdbuser, sdbpassword );
-      groupInfo.addNode( nodeInfo );
-    }
-    groupList.push( groupInfo );
+         for( var i=0; i<bson["Group"].length; i++ ){
+           var nodeInfo = new NodeInfo( bson["Group"][i]["HostName"],
+                                        bson["Group"][i]["Service"][0]["Name"],
+                                        sdbuser, sdbpassword, "COORD" );
+           groupInfo.addNode( nodeInfo );
+         }
+         groupList.push( groupInfo );
+       }
+
+       // catalog group and data group
+       var cursor = db.list(SDB_LIST_GROUPS, {GroupName:{$ne:"SYSCoord"}});
+       while( cursor.next() ){
+         var bson = cursor.current().toObj();
+         //if ("SYSCoord" == bson["GroupName"])
+         //   continue ;
+         var groupInfo = new GroupInfo();
+         groupInfo.groupName = bson["GroupName"];
+
+         for( var i=0; i<bson["Group"].length; i++ ){
+           
+           var nodeInfo = "";
+           if ( "SYSCatalogGroup" == groupInfo.groupName ) {
+              nodeInfo = new NodeInfo( bson["Group"][i]["HostName"],
+                                       bson["Group"][i]["Service"][0]["Name"],
+                                       sdbuser, sdbpassword, "CATALOG" );
+           }
+           else {
+              nodeInfo = new NodeInfo( bson["Group"][i]["HostName"],
+                                       bson["Group"][i]["Service"][0]["Name"],
+                                       sdbuser, sdbpassword, "DATANODE" );
+           }
+           groupInfo.addNode( nodeInfo );
+         }
+         groupList.push( groupInfo );
+       }
+       break;
+    case "CATALOG" :
+       println ("error node, can not only analy catalog node");
+       return "null";
+       break;
+    case "DATANODE" : // standalone
+       var groupInfo = new GroupInfo();
+       groupInfo.groupName = "STANDALONE";
+       var hostArr = coordHosts.split (",");
+       for (var i=0; i<hostArr.length; ++i) {
+          var _hArr = hostArr[i].split (":");
+          var _h = _hArr[0];
+          var _s = _hArr[1];
+          nodeInfo = new NodeInfo( _h, _s,
+                                   sdbuser, sdbpassword, "DATANODE" );
+          groupInfo.addNode (nodeInfo);
+       }
+       groupList.push( groupInfo );
+       break;
+    default :
+       println ("error node type");
+       return "null";
   }
   
   return groupList;
@@ -106,6 +166,10 @@ function main( coordHosts )
       return e;
     }
     var groupList = createGroupInfoList( db );
+    if (groupList == "null") {
+       println ( "Abnormal exit" );
+       return -1;
+    }
     calculate_rw_info( oldInfo, newInfo );
 
     var coordGroup = "";

@@ -4,7 +4,7 @@
 //db.snapshot(6) is sdb sys read/write/indexread/indexwrite status
 //db.snapshot(3) is every datanode read/write/indexread/indexwrite status
 
-function NodeInfo( hn, pt, user, pw )
+function NodeInfo( hn, pt, user, pw, _type )
 {
    if( hn != undefined )
      this.hostname = hn;
@@ -33,7 +33,7 @@ function NodeInfo( hn, pt, user, pw )
    this.role = "";
    
    // node type, data/catalog
-   this.type = "";
+   this.type = _type;
   
    //disk save status
    this.diskLoadPercent = -1;
@@ -312,28 +312,6 @@ function NodeInfo( hn, pt, user, pw )
         }
       }
 
-      var cursor = "";
-      try {
-         cursor = nodedb.snapshot(8);
-         this.type = "COORD";
-         cursor.close();
-      }
-      catch ( e ) {
-         if ( e == SDB_RTN_COORD_ONLY ) {
-            var cursor = nodedb.snapshot(7);
-            var snapshot7_obj = cursor.next().toObj();
-            cursor.close();
-            if ( "SYSCatalogGroup" == snapshot7_obj["GroupName"] ){
-              this.type = "CATALOG";
-            }else{
-              this.type = "DATANODE";
-            }
-         }
-         else {
-            println ( "nodedb.snapshot(8) error, error = " + e );
-         }
-      }
-
       var cursor = nodedb.snapshot(6);
       var snapshot6_obj = cursor.next().toObj();
       cursor.close();
@@ -366,8 +344,6 @@ function NodeInfo( hn, pt, user, pw )
       var nodeTimeGap = localShellTime - _nodeTime;
 
       this.currentTimestamp = currentTimestamp - nodeTimeGap;
-
-//println( this.hostname + "@" + this.currentTimestamp );
 
       if ( this.type != "COORD" ) {
          var cursor = nodedb.snapshot(6);
@@ -545,7 +521,7 @@ function GroupInfo( coordHostName, coordPort )
          this.coordNodes.push(nodeInfo);
       }
       else {
-         // datagroup or syscatalog_group
+         // standalone, datagroup or syscatalog_group
          // if this node is master , then this.masterNode = nodeInfo
          if ( nodeInfo.role == "master" ){
             this.masterNode = nodeInfo;
@@ -720,7 +696,6 @@ function GroupInfo( coordHostName, coordPort )
                      + "null" + "|"
                      + node.alarmLevel + "|"
                      + description );
-          
          for( var j=0; j < sessionList.length; j++ ){
             var session = sessionList[j];
             node.alarmLevel = 0;
@@ -732,7 +707,15 @@ function GroupInfo( coordHostName, coordPort )
                node.alarmLevel = 0;
             }
             if ( node.alarmLevel != 0 && session.execName != "INSERT" ) {
-               var coordSessionId = this.findCoordSessionId (session.relateId, coordGroup);
+               var coordSessionId = "";
+               if (this.groupName != "STANDALONE") {
+                  coordSessionId = this.findCoordSessionId (session.relateId, coordGroup);
+               }
+               else {
+                  // host + ":" + service + ":" + sessionID;
+                  coordSessionId = node.hostname + ":" + node.port + ":" + session.sessionID;
+               }
+
                var description = node.getContextDescription (session, session.execName);
                if (coordSessionId != "null") {
                   pClass.add( "" 
