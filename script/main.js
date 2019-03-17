@@ -100,11 +100,11 @@ function main( coordHosts )
   var date = new Date();
 
   if ( doWhat == "doMain" ){
-     try {
-        var db = getConnect ( coordHosts );
-     } catch ( e ) {
-        return e;
-     }
+    try {
+      var db = getConnect ( coordHosts );
+    } catch ( e ) {
+      return e;
+    }
     var groupList = createGroupInfoList( db );
     calculate_rw_info( oldInfo, newInfo );
 
@@ -148,7 +148,7 @@ function main( coordHosts )
 
     db.close();
 
-    pClass.print(0);
+    pClass.print(1);
   }
   else if ( doWhat == "get_read_write_info" ){
      try {
@@ -160,19 +160,19 @@ function main( coordHosts )
 
     db.close();
 
-    pClass.print(1);
+    pClass.print(-1);
   }
   else if ( doWhat == "test_connect_to_sdb" ) {
      test_connect_to_sdb (coordHosts);
-     pClass.print(1);
+     pClass.print(-1);
   }
   else if ( doWhat == "getReplicaGroup" ) {
      getReplicaGroup (coordHosts);
-     pClass.print(1);
+     pClass.print(-1);
   }
   else if ( doWhat == "getRemoteTimeStamp" ) {
      getRemoteTimeStamp ();
-     pClass.print(1);
+     pClass.print(-1);
   }
 }
 

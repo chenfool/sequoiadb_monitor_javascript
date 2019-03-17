@@ -804,56 +804,64 @@ function printClass()
       //cmd.start (CMD_SHELL + "", "", 1, 0);
    }
 
-   // flag = 0 , print, write log and execCmd
-   // flag = 1 , print and write log
-   // flag = 2 , only write log
+   // flag = -1 , print temp info
+   // flag = 0  , print, write log and execCmd
+   // flag = 1  , print and write log
+   // flag = 2  , only write log
    this.print = function(flag) {
-     this.prepareSavePath ();
-     var time_str = getTime (1);
-     var alarmFile = new File ("output/backup/alarm_" + time_str + ".csv");
-     var resultFile = new File ("output/backup/result_" + time_str + ".csv");
-     var alarmFile_last = new File ("output/alarm_last.csv");
-     var resultFile_last = new File ("output/result_last.csv");
-     for( var i=0; i<this.variablesArray.length; i++ ){
-       if (flag != 1 ) {
-          this.execCmd (this.variablesArray[i]);
-       }
-
-       resultFile.write (this.variablesArray[i] + "\n");
-       resultFile_last.write (this.variablesArray[i] + "\n");
-       if (flag != undefined) {
-          switch (flag)
-          {
-             case 0 :  // print, write log and execCmd
-                if (this.isAlarmInfo (this.variablesArray[i])) {
-                   alarmFile.write (this.variablesArray[i] + "\n");
-                   alarmFile_last.write (this.variablesArray[i] + "\n");
-                   println( this.variablesArray[i] );
-                }
-           
-                break;   
-             case 1 :  // print and write log
-                if (this.isAlarmInfo (this.variablesArray[i])) {
-                   alarmFile.write (this.variablesArray[i] + "\n");
-                   alarmFile_last.write (this.variablesArray[i] + "\n");
-                   println( this.variablesArray[i] );
-                }
-                break;   
-             case 2 :  // only write log
-                if (this.isAlarmInfo (this.variablesArray[i])) {
-                   alarmFile.write (this.variablesArray[i] + "\n");
-                   alarmFile_last.write (this.variablesArray[i] + "\n");
-                }
-                break;   
-             default :
-                throw "unknow print type";
-          }
-       }
+     if (flag == -1) {
+        for( var i=0; i<this.variablesArray.length; i++ ){
+           println (this.variablesArray[i]);
+        }
      }
-     alarmFile.close();
-     alarmFile_last.close();
-     resultFile.close();
-     resultFile_last.close();
+     else {
+        this.prepareSavePath ();
+        var time_str = getTime (1);
+        var alarmFile = new File ("output/backup/alarm_" + time_str + ".csv");
+        var resultFile = new File ("output/backup/result_" + time_str + ".csv");
+        var alarmFile_last = new File ("output/alarm_last.csv");
+        var resultFile_last = new File ("output/result_last.csv");
+        for( var i=0; i<this.variablesArray.length; i++ ){
+          if (flag != 1 ) {
+             this.execCmd (this.variablesArray[i]);
+          }
+
+          resultFile.write (this.variablesArray[i] + "\n");
+          resultFile_last.write (this.variablesArray[i] + "\n");
+          if (flag != undefined) {
+             switch (flag)
+             {
+                case 0 :  // print, write log and execCmd
+                   if (this.isAlarmInfo (this.variablesArray[i])) {
+                      alarmFile.write (this.variablesArray[i] + "\n");
+                      alarmFile_last.write (this.variablesArray[i] + "\n");
+                      println( this.variablesArray[i] );
+                   }
+              
+                   break;   
+                case 1 :  // print and write log
+                   if (this.isAlarmInfo (this.variablesArray[i])) {
+                      alarmFile.write (this.variablesArray[i] + "\n");
+                      alarmFile_last.write (this.variablesArray[i] + "\n");
+                      println( this.variablesArray[i] );
+                   }
+                   break;   
+                case 2 :  // only write log
+                   if (this.isAlarmInfo (this.variablesArray[i])) {
+                      alarmFile.write (this.variablesArray[i] + "\n");
+                      alarmFile_last.write (this.variablesArray[i] + "\n");
+                   }
+                   break;   
+                default :
+                   throw "unknow print type";
+             }
+          }
+        }
+        alarmFile.close();
+        alarmFile_last.close();
+        resultFile.close();
+        resultFile_last.close();
+     }
    }
 }
 
