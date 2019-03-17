@@ -743,6 +743,15 @@ function printClass()
       this.variablesArray.push( variables );
    }
 
+   this.isCoordInfo = function (info) {
+      var infoList = info.split ("|");
+      var nodeInfo = infoList[0];
+      if (nodeInfo == "coord")
+         return true;
+      return false;
+
+   }
+
    this.isAlarmInfo = function (info) {
       var infoList = info.split ("|");
       var nodeInfo = infoList[0];
@@ -805,19 +814,25 @@ function printClass()
         var alarmFile_last = new File ("output/alarm_last.csv");
         var resultFile_last = new File ("output/result_last.csv");
         for( var i=0; i<this.variablesArray.length; i++ ){
-          if (flag != 1 ) {
-             this.execCmd (this.variablesArray[i]);
-          }
 
           resultFile.write (this.variablesArray[i] + "\n");
           resultFile_last.write (this.variablesArray[i] + "\n");
+
+          if (this.isCoordInfo (this.variablesArray[i])) {
+             println (this.variablesArray[i]);
+          }
+  
           if (flag != undefined) {
              switch (flag)
              {
                 case 0 :  // print, write log and execCmd
                    if (this.isAlarmInfo (this.variablesArray[i])) {
+                      // write log
                       alarmFile.write (this.variablesArray[i] + "\n");
                       alarmFile_last.write (this.variablesArray[i] + "\n");
+                      // exec cmd
+                      this.execCmd (this.variablesArray[i]);
+                      // println 
                       println( this.variablesArray[i] );
                    }
               
