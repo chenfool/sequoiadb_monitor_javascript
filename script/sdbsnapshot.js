@@ -104,7 +104,8 @@ function NodeInfo( hn, pt, user, pw )
 
                var context = this.contextList[i];
                _desc = context.description;
-               for (var j=0; j<contexts.length; ++j) {
+               for (var j=0; j<contexts.length; ++j)
+               {
                   var contextID = contexts[j];
                   if (context.contextID == contextID) {
                      _desc = _desc.replace (/ /g, "");
@@ -141,11 +142,11 @@ function NodeInfo( hn, pt, user, pw )
                            if (matchBegin && !matchOver)
                               matchOver = true;
                         }
-                        if (matchBegin && !matchOver) {
+                        else if (matchBegin && !matchOver) {
                            matcher = matcher + "," + tmp;
                         }
                      }
-
+                     find = true;
                      break;
                   }
                }
@@ -217,11 +218,11 @@ function NodeInfo( hn, pt, user, pw )
                   if (hintBegin && !hintOver)
                      hintOver = true;
                }
-               if (matchBegin && !matchOver)
+               else if (matchBegin && !matchOver)
                   matcher = matcher + "," + tmp;
-               if (updateBegin && !updateOver)
+               else if (updateBegin && !updateOver)
                   updator = updator + "," + tmp;
-               if (hintBegin && !hintOver)
+               else if (hintBegin && !hintOver)
                   hint = hint + "," + tmp;
             }
             description = "Collection:" + collectionName + ",Matcher:" + matcher + ",Updator:" + updator + ",Hint:" + hint;
@@ -270,9 +271,9 @@ function NodeInfo( hn, pt, user, pw )
                   if (hintBegin && !hintOver)
                      hintOver = true;
                }
-               if (deleteBegin && !deleteOver)
+               else if (deleteBegin && !deleteOver)
                   deletor = deletor + "," + tmp;
-               if (hintBegin && !hintOver)
+               else if (hintBegin && !hintOver)
                   hint = hint + "," + tmp;
             }
             description = "Collection:" + collectionName + ",Deletor:" + deletor + ",Hint:" + hint;
@@ -761,20 +762,27 @@ function printClass()
 
    this.isAlarmInfo = function (info) {
       var infoList = info.split ("|");
+      var nodeInfo = infoList[0];
       var signs = infoList[6];
-      if (signs == 0)
+      if (nodeInfo == "coord" || signs == 0)
          return false;
       return true;
-
    }
 
    this.prepareSavePath = function () {
-
+      if (File.exist ("output")) {
+         if (!File.isDir ("output")) {
+            println ("output is exists and is not dir");
+         }
+      }
+      else {
+         File.mkdir ("output");
+      }
    }
 
    this.execCmd = function (info) {
       var infoList = info.split ("|");
-      var nodeIndo = infoList[0];
+      var nodeInfo = infoList[0];
       var type = infoList[1];
       var warningValue = infoList[2];
       var value = infoList[3];
@@ -791,12 +799,52 @@ function printClass()
    // flag = 1 , print and write log
    // flag = 2 , only write log
    this.print = function(flag) {
+     var time_str = getTime (1);
+     var alarmFile = new File ("output/alarm_" + time_str + ".csv");
+     var alarmFile_last = new File ("output/alarm_last.csv");
+     var resultFile = new File ("output/result_" + time_str + ".csv");
+     var resultFile_last = new File ("output/result_last.csv");
      for( var i=0; i<this.variablesArray.length; i++ ){
-       println( this.variablesArray[i] );
        if (flag != 1 ) {
           this.execCmd (this.variablesArray[i]);
        }
+
+       this.prepareSavePath ();
+       resultFile.write (this.variablesArray[i] + "\n");
+       resultFile_last.write (this.variablesArray[i] + "\n");
+       if (flag != undefined) {
+          switch (flag)
+          {
+             case 0 :  // print, write log and execCmd
+                if (this.isAlarmInfo (this.variablesArray[i])) {
+                   alarmFile.write (this.variablesArray[i] + "\n");
+                   alarmFile_last.write (this.variablesArray[i] + "\n");
+                   println( this.variablesArray[i] );
+                }
+           
+                break;   
+             case 1 :  // print and write log
+                if (this.isAlarmInfo (this.variablesArray[i])) {
+                   alarmFile.write (this.variablesArray[i] + "\n");
+                   alarmFile_last.write (this.variablesArray[i] + "\n");
+                   println( this.variablesArray[i] );
+                }
+                break;   
+             case 2 :  // only write log
+                if (this.isAlarmInfo (this.variablesArray[i])) {
+                   alarmFile.write (this.variablesArray[i] + "\n");
+                   alarmFile_last.write (this.variablesArray[i] + "\n");
+                }
+                break;   
+             default :
+                throw "unknow print type";
+          }
+       }
      }
+     alarmFile.close();
+     alarmFile_last.close();
+     resultFile.close();
+     resultFile_last.close();
    }
 }
 
