@@ -778,6 +778,15 @@ function printClass()
       else {
          File.mkdir ("output");
       }
+
+      if (File.exist ("output/backup")) {
+         if (!File.isDir ("output/backup")) {
+            println ("output/backup is exists and is not dir");
+         }
+      }
+      else {
+         File.mkdir ("output/backup");
+      }
    }
 
    this.execCmd = function (info) {
@@ -799,17 +808,17 @@ function printClass()
    // flag = 1 , print and write log
    // flag = 2 , only write log
    this.print = function(flag) {
+     this.prepareSavePath ();
      var time_str = getTime (1);
-     var alarmFile = new File ("output/alarm_" + time_str + ".csv");
+     var alarmFile = new File ("output/backup/alarm_" + time_str + ".csv");
+     var resultFile = new File ("output/backup/result_" + time_str + ".csv");
      var alarmFile_last = new File ("output/alarm_last.csv");
-     var resultFile = new File ("output/result_" + time_str + ".csv");
      var resultFile_last = new File ("output/result_last.csv");
      for( var i=0; i<this.variablesArray.length; i++ ){
        if (flag != 1 ) {
           this.execCmd (this.variablesArray[i]);
        }
 
-       this.prepareSavePath ();
        resultFile.write (this.variablesArray[i] + "\n");
        resultFile_last.write (this.variablesArray[i] + "\n");
        if (flag != undefined) {
