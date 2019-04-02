@@ -32,7 +32,18 @@ main()
      touch ${filepath}/tmp/oldInfo.txt;
   fi  
 
-  cat ${filepath}/script/sdbsnapshot.js > ${filepath}/tmp/temp.js ; cat ${filepath}/conf/alarm.js >> ${filepath}/tmp/temp.js; cat ${filepath}/script/main.js >> ${filepath}/tmp/temp.js;
+  # cat ${filepath}/script/sdbsnapshot.js > ${filepath}/tmp/temp.js ; cat ${filepath}/conf/alarm.js >> ${filepath}/tmp/temp.js; cat ${filepath}/script/main.js >> ${filepath}/tmp/temp.js;
+  cat ${filepath}/script/function.js > ${filepath}/tmp/temp.js ;
+  cat ${filepath}/script/nodeInfo.js >> ${filepath}/tmp/temp.js ;
+  cat ${filepath}/script/groupInfo.js >> ${filepath}/tmp/temp.js ;
+  cat ${filepath}/script/printClass.js >> ${filepath}/tmp/temp.js ;
+  cat ${filepath}/script/node_rw_info.js >> ${filepath}/tmp/temp.js ;
+  cat ${filepath}/script/splitInfo.js >> ${filepath}/tmp/temp.js ;
+  cat ${filepath}/script/csstatus.js >> ${filepath}/tmp/temp.js ;
+  cat ${filepath}/script/session.js >> ${filepath}/tmp/temp.js ;
+  cat ${filepath}/script/context.js >> ${filepath}/tmp/temp.js ;
+  cat ${filepath}/conf/alarm.js >> ${filepath}/tmp/temp.js;
+  cat ${filepath}/script/main.js >> ${filepath}/tmp/temp.js;
 
   # test connect sequoiadb
   outputInfo=$(${SDB} -f "${filepath}/tmp/temp.js" -e "var doWhat='test_connect_to_sdb'; var coordHosts='${hosts}'; var sdbuser = '${username}'; var sdbpassword = '${password}';")
@@ -51,7 +62,10 @@ main()
      newInfo=${newInfo}"#"${line}
   done 
 
-  oldInfo=$( cat ${filepath}/tmp/oldInfo.txt )
+  oldInfo=""
+  if [ -e "${filepath}/tmp/oldInfo.txt" ] ; then
+     oldInfo=$( cat ${filepath}/tmp/oldInfo.txt )
+  fi 
   
   if [ a"" == a"${oldInfo}" ] ; then
      oldInfo=${newInfo};
