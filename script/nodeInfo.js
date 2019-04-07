@@ -149,7 +149,9 @@ function NodeInfo( hn, pt, user, pw, _type )
          }
          case "UPDATE" : {
             // update session's lastOpInfo demo
-            // "LastOpInfo": "Collection:foo.bar, Matcher:{ \"id\": 1 }, Updator:{ \"$set\": { \"info\": \"1111\" } }, Hint:{}, Flag:0x00000004(4)",
+            // TODO
+            // sdb engine 2.8, e.g:"LastOpInfo": "Collection:foo.bar, Matcher:{ \"id\": 1 }, Updator:{ \"$set\": {} }, Hint:{}, Flag:0x00000004(4)",
+            // sdb engine 3.0, e.g:"LastOpInfo": "Collection:foo.bar, Matcher:{ \"id\": 1 }, Updator:{ \"$set\": { \"info\": \"1111\" } }, Hint:{}, Flag:0x00000004(4)",
             var lastOpInfo = session.lastOpInfo;
             //lastOpInfo = lastOpInfo.replace(/ /g, "");
 

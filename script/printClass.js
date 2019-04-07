@@ -46,11 +46,13 @@ function printClass()
             var signs = infoList[6];
             var desc_2 = infoList[7];
 
-            var desc_1_arr = desc_1.split(":");
+            var desc_1_arr = desc_1.split(",");
+            var execType = desc_1_arr[1];
+
+            desc_1_arr = desc_1_arr[0].split(":");
             var coordHost = desc_1_arr[0];
             var coordService = desc_1_arr[1];
             var coordSessionID = desc_1_arr[2];
-            var execType = desc_1_arr[3];
 
 
             var sessionTimeoutAlarmInfo = "" +
@@ -59,7 +61,7 @@ function printClass()
                warningValue + "|" +
                value + "|" +
                time + "|" +
-               coordSessionID + ":" + execType + "|" +
+               "SESSIONID:" + coordSessionID + "," + execType + "|" +
                signs + "|" +
                desc_2;
 

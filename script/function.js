@@ -205,7 +205,7 @@ function calculate_rw_info( oldInfo, newInfo )
      }
   }
   //dataread
-  pClass.add( newClass.node_rw_info_list[i].nodeType + "|"
+  pClass.add( newClass.node_rw_info_list[0].nodeType + "|"
                  + "DATAREAD" + "|"
                  + "null" + "|"
                  + dataread_diff + "|"
@@ -214,7 +214,7 @@ function calculate_rw_info( oldInfo, newInfo )
                  + "0" + "|"
                  + "null" );
   //datawrite
-  pClass.add( newClass.node_rw_info_list[i].nodeType + "|"
+  pClass.add( newClass.node_rw_info_list[0].nodeType + "|"
                  + "DATAWRITE" + "|"
                  + "null" + "|"
                  + datawrite_diff + "|"
@@ -223,7 +223,7 @@ function calculate_rw_info( oldInfo, newInfo )
                  + "0" + "|"
                  + "null" );
   //indexread
-  pClass.add( newClass.node_rw_info_list[i].nodeType + "|"
+  pClass.add( newClass.node_rw_info_list[0].nodeType + "|"
                  + "INDEXREAD" + "|"
                  + "null" + "|"
                  + indexread_diff + "|"

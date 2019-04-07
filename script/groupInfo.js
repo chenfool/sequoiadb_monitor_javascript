@@ -147,10 +147,16 @@ function GroupInfo( coordHostName, coordPort )
             if (node_relateId == session.relateId) {
                var host = coordnode.hostname;
                var service = coordnode.port;
-               var sessionID = session.sessionID;
+               var sessionID = "" + session.sessionID;
                // TODO
                // sdb engine 2.6, coord.session.sessionID = "HOST:SERVICE:SESSIONID", e.g:"sdb1:11810:99"
-               return sessionID;
+               // sdb engine 2.8.1, coord.session.sessionID = "SESSIONID", e.g:"17"
+               if (sessionID.indexOf (":") != -1) {
+                  return sessionID;
+               }
+               else {
+                  return host + ":" + service + ":" + sessionID;
+               }
             }
          }
       }
@@ -210,8 +216,17 @@ function GroupInfo( coordHostName, coordPort )
                   coordSessionId = this.findCoordSessionId (session.relateId, coordGroup);
                }
                else {
+                  // TODO
+                  // sdb engine 2.6, coord.session.sessionID = "HOST:SERVICE:SESSIONID", e.g:"sdb1:11810:99"
+                  // sdb engine 2.8.1, coord.session.sessionID = "SESSIONID", e.g:"17"
                   // host + ":" + service + ":" + sessionID;
-                  coordSessionId = node.hostname + ":" + node.port + ":" + session.sessionID;
+                  var _sessionID = "" + session.sessionID;
+                  if (_sessionID.indexOf (":") != -1) {
+                     coordSessionId = session.sessionID;
+                  }
+                  else {
+                     coordSessionId = node.hostname + ":" + node.port + ":" + session.sessionID;
+                  }
                }
 
                var description = node.getContextDescription (session, session.execName);
@@ -222,7 +237,7 @@ function GroupInfo( coordHostName, coordPort )
                            + _maxAlarmRelativeTime + "|"
                            + session.relativeTime + "|"
                            + getTime() + "|"
-                           + coordSessionId + ":" + session.execName + "|"
+                           + coordSessionId + "," + session.execName + "|"
                            + node.alarmLevel + "|"
                            + description );
                }
