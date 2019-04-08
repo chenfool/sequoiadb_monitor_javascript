@@ -76,6 +76,8 @@ sdb1:11810|SESSIONTIMEOUT|1|8|10:05:24|SESSIONID:10,GETCOUNT|2|ScanType:TBSCAN,C
 
 > Note:
 > 
+> 支持 SequoiaDB 巨杉数据库 `2.6`、`2.8`、`3.0` 和 `3.2` 版本
+> 
 > 用户执行完 sdbmonitor 工具后，会在执行路径生成 output 和 tmp 目录。output 目录主要用于保存每次工具收集的监控信息，tmp 目录则是工具执行过程中的临时文件。
 > 
 > 为了让 sdbmonitor 工具终端输出的告警信息尽可能简洁，所以对 SESSIONTIMEOUT 监控项的部分信息做了空格替换处理，如需查看原始信息，请查阅 output/alarm_last.csv 和 output/result_last.csv 文件。
