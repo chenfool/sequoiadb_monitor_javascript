@@ -102,6 +102,7 @@ sdbmonitor 监控项介绍说明
 | DATANODE_LSN | 数据分区组主从 LSN 差距 |
 | CSSIZE | Node 节点 CollectionSpace 占用空间 |
 | SESSIONNUM | Node 节点会话数 |
+| SESSIONTIMEOUT | Node 节点操作超时监控 |
 | GROUPSTATUS | 分区组状态 |
 | NODESTATUS | Node 节点状态 |
 
@@ -114,6 +115,21 @@ sdbmonitor 监控项介绍说明
 > SESSIONTIMEOUT 监控项，在终端和 alarm_last.csv 中输出时，描述信息1中将以 COORD_SESSIONID,EXECTYPE 形式输出，例如：SESSIONID:10,GETCOUNT；
 > 
 > SESSIONTIMEOUT 监控项，如果在 result_last.csv 中输出时，描述信息1中将以 HOSTNAME:SERVICE:COORD_SESSIONID,EXECTYPE 形式输出，例如：sdb1:11810:10,GETCOUNT
+
+SESSIONTIMEOUT 监控项，EXECTYPE 对应表格
+
+| EXCECTYPE | 说明 |
+| --------- | --- |
+| GETCOUNT | 数据表 count 操作 |
+| GETMORE | 数据表查询操作 |
+| UPDATE | 数据表更新操作 |
+| DELETE | 数据表删除操作 |
+| LOB WRITE | 数据表大对象写入操作 |
+| LOB READ | 数据表大对象读取操作 |
+
+> Note:
+> 
+> 目前监控工具暂时不对 INSERT 操作进行监控
 
 sdbmonitor 监控工具执行后，将在本地路径生成 output 目录，该目录将归档保存每次执行收集到的监控信息。
 
